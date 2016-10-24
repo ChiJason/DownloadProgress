@@ -3,9 +3,7 @@ package com.example.jasonchi.downloadprogress;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.ResultReceiver;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -21,14 +19,22 @@ import java.net.URLConnection;
 
 public class DownloadService extends IntentService {
 
+    public static String ACTION= MyApplication.getInstance().getPackageName() + ".intent.action." + "SHOW_PRPGRESS";
+
     public DownloadService() {
         super("Service");
+    }
+
+    public static void DownloadService(Context context){
+        Intent intent = new Intent(context, DownloadService.class);
+//        intent.putExtra("receiver", new DownloadReceiver(new Handler()));
+        context.startService(intent);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        ResultReceiver receiver = intent.getParcelableExtra("receiver");
+
 
         int count;
         try {
@@ -49,15 +55,20 @@ public class DownloadService extends IntentService {
 
             long total = 0;
 
+
+
             while ((count = input.read(data)) != -1) {
                 total += count;
                 // publishing the progress....
                 // After this onProgressUpdate will be called
 
-                Bundle getData = new Bundle();
-                getData.putInt("progress", (int)((total*100)/lenghtOfFile));
+//                Bundle getData = new Bundle();
+//                getData.putInt("progress", (int)((total*100)/lenghtOfFile));
+                Intent it = new Intent(ACTION);
+                it.putExtra("progress", (int)((total*100)/lenghtOfFile));
+                LocalBroadcastManager.getInstance(this).sendBroadcast(it);
 
-                receiver.send(0, getData);
+                //receiver.send(0, getData);
                 // writing data to file
                 output.write(data, 0, count);
             }
@@ -72,6 +83,5 @@ public class DownloadService extends IntentService {
         } catch (Exception e) {
             Log.e("Error: ", e.getMessage());
         }
-
     }
 }

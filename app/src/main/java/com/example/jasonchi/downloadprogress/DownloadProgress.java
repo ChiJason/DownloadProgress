@@ -1,11 +1,15 @@
 package com.example.jasonchi.downloadprogress;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +20,7 @@ public class DownloadProgress extends AppCompatActivity {
 
     Button download_btn;
     ImageView showPic;
+    BroadcastReceiver broadcastReceiver;
     ProgressDialog pd;
 
     @Override
@@ -27,46 +32,53 @@ public class DownloadProgress extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        IntentFilter iff = new IntentFilter(DownloadService.ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, iff);
+    }
+
     private void init() {
         download_btn =(Button) findViewById(R.id.download_btn);
         showPic = (ImageView) findViewById(R.id.showPic);
 
+        download_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DownloadService.DownloadService(getApplicationContext());
+                showProgressDialog();
+            }
+        });
+
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                pd.setProgress(intent.getIntExtra("progress",0));
+                if(pd.getProgress() == 100){
+                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
+                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
+                    pd.dismiss();
+                }
+            }
+        };
+
+    }
+    private void showProgressDialog(){
         pd = new ProgressDialog(this);
         pd.setMax(100);
         pd.setIndeterminate(false);
         pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         pd.setTitle("Downloading...");
         pd.setCancelable(true);
-
-        download_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DownloadProgress.this, DownloadService.class);
-                intent.putExtra("receiver", new DownloadReceiver(new Handler()));
-                startService(intent);
-                pd.show();
-            }
-        });
+        pd.show();
     }
-    private class DownloadReceiver extends ResultReceiver {
 
-        public DownloadReceiver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        public void onReceiveResult(int resultCode, Bundle resultData) {
-            super.onReceiveResult(resultCode, resultData);
-            if (resultCode == 0) {
-                int progress = resultData.getInt("progress");
-                pd.setProgress(progress);
-                if(pd.getProgress() == 100){
-                    pd.dismiss();
-                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
-                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
-                }
-            }
-
-        }
-    }
 }
