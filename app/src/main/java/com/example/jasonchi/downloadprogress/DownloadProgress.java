@@ -15,6 +15,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import java.io.File;
 
 public class DownloadProgress extends AppCompatActivity {
 
@@ -63,9 +66,13 @@ public class DownloadProgress extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 pd.setProgress(intent.getIntExtra("progress",0));
                 if(pd.getProgress() == 100){
-                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
-                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
+//                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
+//                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
                     pd.dismiss();
+                    File downloadfile = new File(Environment.getExternalStorageDirectory().toString()+"//largo_resources_015_1477453513601_S44-3.zip");
+                    if(downloadfile.isFile()){
+                        Toast.makeText(DownloadProgress.this, "Download Files....isComplelte", Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         };
@@ -77,7 +84,7 @@ public class DownloadProgress extends AppCompatActivity {
         pd.setIndeterminate(false);
         pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         pd.setTitle("Downloading...");
-        pd.setCancelable(true);
+        pd.setCancelable(false);
         pd.show();
     }
 
