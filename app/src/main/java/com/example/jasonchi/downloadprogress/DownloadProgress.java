@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,14 +15,21 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.File;
+import com.daimajia.numberprogressbar.NumberProgressBar;
+import com.daimajia.numberprogressbar.OnProgressBarListener;
 
-public class DownloadProgress extends AppCompatActivity {
+import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class DownloadProgress extends AppCompatActivity implements OnProgressBarListener{
 
     Button download_btn;
     ImageView showPic;
     BroadcastReceiver broadcastReceiver;
     ProgressDialog pd;
+    ProcessProgressDialog processProgressDialog;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +61,9 @@ public class DownloadProgress extends AppCompatActivity {
         download_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DownloadService.DownloadService(getApplicationContext());
-                showProgressDialog();
+//                DownloadService.DownloadService(getApplicationContext());
+//                showProgressDialog();
+                showNumberProgressDialog();
             }
         });
 
@@ -66,10 +72,10 @@ public class DownloadProgress extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 pd.setProgress(intent.getIntExtra("progress",0));
                 if(pd.getProgress() == 100){
-//                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
-//                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
+                    String imagePath = Environment.getExternalStorageDirectory().toString() + "/ssss.jpg";
+                    showPic.setImageDrawable(Drawable.createFromPath(imagePath));
                     pd.dismiss();
-                    File downloadfile = new File(Environment.getExternalStorageDirectory().toString()+"//largo_resources_015_1477453513601_S44-3.zip");
+                    File downloadfile = new File(getApplicationContext().getFileStreamPath("/largo_resources_015_1477453513601_S44-3.zip").getPath());
                     if(downloadfile.isFile()){
                         Toast.makeText(DownloadProgress.this, "Download Files....isComplelte", Toast.LENGTH_LONG).show();
                     }
@@ -78,6 +84,35 @@ public class DownloadProgress extends AppCompatActivity {
         };
 
     }
+
+    private void showNumberProgressDialog(){
+
+        processProgressDialog = new ProcessProgressDialog(this, "Processing, please wait...");
+        processProgressDialog.show(getSupportFragmentManager(), "");
+
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            int i =0;
+            int total = 12000;
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        i+=10;
+                        processProgressDialog.setProgressMessage("process 1");
+                        processProgressDialog.setSecondProgressMessage("process 2");
+                        processProgressDialog.setDialogProgress(i * 100 / total);
+                    }
+                });
+            }
+        }, 1000, 100);
+//        if(processProgressDialog.isClose()){
+//            timer.cancel();
+//        }
+
+    }
+
     private void showProgressDialog(){
         pd = new ProgressDialog(this);
         pd.setMax(100);
@@ -88,4 +123,12 @@ public class DownloadProgress extends AppCompatActivity {
         pd.show();
     }
 
+    @Override
+    public void onProgressChange(int current, int max) {
+        if(current == max) {
+            if(processProgressDialog.isProcessFinished()) {
+                processProgressDialog.dismiss();
+            }
+        }
+    }
 }

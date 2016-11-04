@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DownloadProgress.iml" filepath="$PROJECT_DIR$/DownloadProgress.iml" />
+      <module fileurl="file://$PROJECT_DIR$/NumberProgressBar/NumberProgressBar.iml" filepath="$PROJECT_DIR$/NumberProgressBar/NumberProgressBar.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

@@ -68,11 +68,15 @@ public class DownloadService extends IntentService {
             SftpATTRS attrs = channelSftp.lstat(SFTPWORKINGDIR + "largo_resources_015_1477453513601_S44-3.zip");
             long lenghtOfFile = attrs.getSize();
 
+            File tempDir = getResourcePath(this);
+            File downloadFile = new File(tempDir, "largo_resources_015_1477453513601_S44-3.zip");
+            File getFile = new File((this.getApplicationContext().getFileStreamPath("largo_resources_015_1477453513601_S44-3.zip").getPath()));
+
             // download the file
             InputStream input = new BufferedInputStream(channelSftp.get("largo_resources_015_1477453513601_S44-3.zip"));
 
             // Output stream
-            OutputStream output = new BufferedOutputStream(new FileOutputStream("/sdcard/largo_resources_015_1477453513601_S44-3.zip"));
+            OutputStream output = new BufferedOutputStream(new FileOutputStream(getFile));
             //"
 
             byte data[] = new byte[1024];
@@ -101,6 +105,33 @@ public class DownloadService extends IntentService {
 
         } catch (Exception e) {
             Log.e("Error: ", e.getMessage());
+            Intent it = new Intent(ACTION);
+            it.putExtra("progress", 100);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(it);
         }
+    }
+
+    private File getResourcePath(Context context) {
+        String localPath = "/storage/extSdCard/Android/data/com.ogloba.kiosk.android";
+        if (localPath.length() > 0) {
+            File file = new File(localPath);
+            if (file.isDirectory()) {
+                return file;
+            } else {
+                return Environment.getExternalStorageDirectory();
+            }
+
+        } else {
+            return Environment.getExternalStorageDirectory();
+        }
+    }
+
+    public File getDownloadTempDir(Context context) {
+        File dir = new File(getResourcePath(context), "largo_temp");
+
+        if (!dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        return dir;
     }
 }
